@@ -11,12 +11,14 @@
 
 declare(strict_types=1);
 
+use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Address;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Answer;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\CompositeItem;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\CompositeLabel;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\CompositePrimitiveItem;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\CompositeRelation;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Container;
+use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Customer;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Dummy;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\DummyAggregateOffer;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\DummyCar;
@@ -36,6 +38,7 @@ use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\FooDummy;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\FourthLevel;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Greeting;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Node;
+use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Order;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Person;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\PersonToPet;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Pet;
@@ -1020,6 +1023,35 @@ final class FeatureContext implements Context, SnippetAcceptingContext
 
         $this->manager->persist($person);
         $this->manager->persist($greeting);
+
+        $this->manager->flush();
+        $this->manager->clear();
+    }
+
+    /**
+     * @Given there is a order with same customer and receiver
+     */
+    public function testEagerLoadingNotDuplicateRelation()
+    {
+        $customer = new Customer();
+        $customer->name = 'customer_name';
+
+        $address1 = new Address();
+        $address1->name = 'foo';
+        $address2 = new Address();
+        $address2->name = 'bar';
+
+        $order = new Order();
+        $order->recipient = $customer;
+        $order->customer = $customer;
+
+        $customer->addresses->add($address1);
+        $customer->addresses->add($address2);
+
+        $this->manager->persist($address1);
+        $this->manager->persist($address2);
+        $this->manager->persist($customer);
+        $this->manager->persist($order);
 
         $this->manager->flush();
         $this->manager->clear();
